@@ -21,7 +21,7 @@ class TestAWSConnection(unittest.TestCase):
             )
         except KeyError:
             pytest.skip("Insufficient ENV envs (AWS_*)")
-        self.empty_file = "file.json"
+        self.empty_file = "file"
         self.key = f"test/{self.empty_file}"
 
     def tearDown(self) -> None:
@@ -96,7 +96,7 @@ class TestAWSConnection(unittest.TestCase):
             table="test",
         )
         self.assertEqual(
-            [BucketFileObject("test", name=self.empty_file, block=None)],
+            [BucketFileObject("test", prefix=self.empty_file, index=None)],
             aws.existing_files().get("test"),
         )
 
