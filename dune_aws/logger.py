@@ -2,7 +2,7 @@
 import logging.config
 from logging import Logger
 
-from src.environment import LOG_CONFIG_FILE
+from dune_aws.environment import LOG_CONFIG_FILE
 
 
 def set_log(name: str) -> Logger:

@@ -1,7 +1,7 @@
 VENV = venv
 PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
-PROJECT_ROOT = src
+PROJECT_ROOT = dune_aws
 
 
 $(VENV)/bin/activate: requirements/dev.txt
@@ -15,6 +15,8 @@ install:
 
 clean:
 	rm -rf __pycache__
+	rm -rf .mypy_cache
+	rm -rf .pytest_cache
 
 fmt:
 	black ./
@@ -39,12 +41,3 @@ test-integration:
 test:
 	python -m pytest tests
 
-run:
-	python -m src.main
-
-build-image:
-	docker build -t local_dune_sync .
-
-run-image:
-	echo "using ${PWD}/data"
-	docker run -v ${PWD}/data:/app/data --env-file .env local_dune_sync

@@ -13,8 +13,8 @@ from boto3.s3.transfer import S3Transfer
 from botocore.client import BaseClient
 from dotenv import load_dotenv
 
-from src.logger import set_log
-from src.text_io import BytesIteratorIO
+from dune_aws.logger import set_log
+from dune_aws.text_io import BytesIteratorIO
 
 log = set_log(__name__)
 
@@ -28,8 +28,8 @@ class BucketFileObject:
     """
 
     path: str
-    name: str
-    block: Optional[int]
+    prefix: str
+    index: Optional[int]
 
     @classmethod
     def from_key(cls, object_key: str) -> BucketFileObject:
@@ -39,8 +39,11 @@ class BucketFileObject:
         """
         path, name = object_key.split("/")
 
+        name.replace(".json", "")
         try:
-            block = int(name.split("_")[-1].strip(".json"))
+            split_name = name.split("_")
+            block = int(split_name[-1])
+            name = "_".join(split_name[:-1])
         except ValueError:
             # File structure does not satisfy block indexing!
             block = None
@@ -56,7 +59,14 @@ class BucketFileObject:
         Original object key
         used to operate on these elements within the S3 bucket (e.g. delete)
         """
-        return "/".join([self.path, self.name])
+        return "/".join([self.path, self.content_filename])
+
+    @property
+    def content_filename(self) -> str:
+        """
+        Object Filename (i.e. without the table)
+        """
+        return self.prefix if not self.index else f"{self.prefix}_{self.index}.json"
 
 
 @dataclass
@@ -244,7 +254,7 @@ class AWSClient:
         """
         try:
             table_files = self.existing_files().get(table)
-            return max(file_obj.block for file_obj in table_files if file_obj.block)
+            return max(file_obj.index for file_obj in table_files if file_obj.index)
         except ValueError as err:
             # Raised when table_files = []
             raise FileNotFoundError(

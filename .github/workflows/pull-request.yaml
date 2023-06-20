@@ -19,8 +19,10 @@ jobs:
       - name: Install Requirements
         run: pip install -r requirements/dev.txt
       - name: Pylint
-        run: pylint src/
+        run: pylint dune_aws/
       - name: Black
         run: black --check ./
       - name: Type Check (mypy)
-        run: mypy src --strict
+        run: mypy dune_aws --strict
+      - name: Unit Test
+        run: python -m pytest tests/unit
