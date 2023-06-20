@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from dotenv import load_dotenv
 
-from src.aws import AWSClient, BucketFileObject
+from dune_aws.aws import AWSClient, BucketFileObject
 
 
 class TestAWSConnection(unittest.TestCase):
@@ -35,11 +35,11 @@ class TestAWSConnection(unittest.TestCase):
         s3_resource = self.aws_client._assume_role()
         self.assertIsNotNone(s3_resource.buckets)
 
-    def test_create_upload_remove(self):
+    def create_upload_remove(self):
         Path(self.empty_file).touch()
         self.aws_client.upload_file(
             filename=self.empty_file,
-            object_key=f"test/{self.empty_file}",
+            table="test",
         )
         os.remove(Path(self.empty_file))
 
@@ -47,20 +47,21 @@ class TestAWSConnection(unittest.TestCase):
         Path(self.empty_file).touch()
         success = self.aws_client.upload_file(
             filename=self.empty_file,
-            object_key=f"test/{self.empty_file}",
+            table="test",
         )
         self.assertTrue(success)
 
     def test_put_object(self):
-        success = self.aws_client.put_object(
-            data_set=[{"x": 1, "y": 2}, {"z": 3}],
-            object_key=f"test/mega_file.json",
-        )
-        self.aws_client.existing_files()
-        self.aws_client.download_file(
-            filename="mega_file.json", object_key="test/mega_file.json"
-        )
+        table = "test_put"
+        filename = "mega_file.json"
+        data_set = [{"x": 1, "y": 2}, {"z": 3}]
+        object_key = f"{table}/{filename}"
+        success = self.aws_client.put_object(data_set, object_key)
+
         self.assertTrue(success)
+
+        # cleanup
+        self.assertTrue(self.aws_client.delete_file(object_key))
 
     def test_download_file(self):
         # Upload file and remove it from our filesystem
@@ -71,19 +72,11 @@ class TestAWSConnection(unittest.TestCase):
 
         success = self.aws_client.download_file(
             filename=self.empty_file,
-            object_key=self.key,
+            table="test",
         )
         self.assertTrue(success)
         # File was downloaded!
         self.assertTrue(exists(self.empty_file))
-
-    def test_download_specific_file(self):
-        success = self.aws_client.download_file(
-            filename="cow_16434617.json",
-            object_key="order_rewards/cow_16434617.json",
-        )
-        self.assertTrue(success)
-        # File was downloaded!
 
     def test_delete_file(self):
         self.create_upload_remove()
@@ -100,7 +93,7 @@ class TestAWSConnection(unittest.TestCase):
 
         aws.upload_file(
             filename=self.empty_file,
-            object_key=object_key,
+            table="test",
         )
         self.assertEqual(
             [BucketFileObject("test", name=self.empty_file, block=None)],
@@ -118,7 +111,7 @@ class TestAWSConnection(unittest.TestCase):
         object_key = f"{table}/{block_indexed_filename}"
         aws.upload_file(
             filename=block_indexed_filename,
-            object_key=object_key,
+            table="test",
         )
 
         self.assertEqual(1, aws.last_sync_block(table))
@@ -136,7 +129,7 @@ class TestAWSConnection(unittest.TestCase):
 
             aws.upload_file(
                 filename=block_indexed_filename,
-                object_key=f"{table}/{block_indexed_filename}",
+                table=table,
             )
             os.remove(Path(block_indexed_filename))
 
