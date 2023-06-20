@@ -13,8 +13,8 @@ from boto3.s3.transfer import S3Transfer
 from botocore.client import BaseClient
 from dotenv import load_dotenv
 
-from src.logger import set_log
-from src.text_io import BytesIteratorIO
+from dune_aws.logger import set_log
+from dune_aws.text_io import BytesIteratorIO
 
 log = set_log(__name__)
 

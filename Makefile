@@ -1,7 +1,7 @@
 VENV = venv
 PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
-PROJECT_ROOT = src
+PROJECT_ROOT = dune_aws
 
 
 $(VENV)/bin/activate: requirements/dev.txt

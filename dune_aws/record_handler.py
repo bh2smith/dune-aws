@@ -6,9 +6,9 @@ import sys
 from typing import Any
 
 from s3transfer import S3UploadFailedError
-from src.aws import AWSClient
+from dune_aws.aws import AWSClient
 
-from src.logger import set_log
+from dune_aws.logger import set_log
 
 log = set_log(__name__)
 
