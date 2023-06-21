@@ -11,6 +11,7 @@ import boto3
 from boto3.resources.base import ServiceResource
 from boto3.s3.transfer import S3Transfer
 from botocore.client import BaseClient
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
 from dune_aws.logger import set_log
@@ -137,14 +138,16 @@ class AWSClient:
         """
         sts_client = boto3.client("sts")
 
-        # TODO - assume that the internal role is already assumed. and use get session_token
-        # sts_client.get_session_token()
-        internal_assumed_role_object = sts_client.assume_role(
-            RoleArn=self.internal_role,
-            RoleSessionName="InternalSession",
-        )
-        credentials = internal_assumed_role_object["Credentials"]
-        # sts_client.get_session_token()
+        try:
+            # When credentials are supplied directly in the environment (local testing)
+            internal_assumed_role_object = sts_client.assume_role(
+                RoleArn=self.internal_role,
+                RoleSessionName="InternalSession",
+            )
+            credentials = internal_assumed_role_object["Credentials"]
+        except ClientError:
+            # When deployed to AWS and
+            credentials = sts_client.get_session_token()["Credentials"]
 
         sts_client = boto3.client(
             "sts",
